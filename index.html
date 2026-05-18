@@ -1298,8 +1298,8 @@
             }
 
             calculateDemand(ticketPrice, flightsPerWeek, capacity) {
-                const baseDemand = 90 * flightsPerWeek;
-                const priceElasticity = Math.max(0.2, 1.8 - (ticketPrice / 400));
+                const baseDemand = capacity * 0.5 * flightsPerWeek;
+                const priceElasticity = Math.max(0.15, 2.0 - (ticketPrice / 350));
                 const demand = baseDemand * priceElasticity;
                 return Math.min(Math.floor(demand), capacity * flightsPerWeek);
             }
@@ -1370,8 +1370,8 @@
                     if (!aircraft) return;
 
                     // Passenger demand simulation
-                    const baseDemand = 200 * route.flightsPerWeek;
-                    const priceElasticity = Math.max(0.3, 1.5 - (route.ticketPrice / 500));
+                    const baseDemand = aircraft.capacity * 0.5 * route.flightsPerWeek;
+                    const priceElasticity = Math.max(0.15, 2.0 - (route.ticketPrice / 350));
                     const demand = baseDemand * priceElasticity * route.reputation;
 
                     const passengers = Math.min(
