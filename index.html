@@ -443,6 +443,7 @@
                 <div class="speed-control">
                     <label>Game Speed:</label>
                     <div class="speed-buttons">
+                        <button class="speed-btn" onclick="game.togglePause()" id="pause-btn">▶️ Play</button>
                         <button class="speed-btn" data-speed="1">1x</button>
                         <button class="speed-btn active" data-speed="2">2x</button>
                         <button class="speed-btn" data-speed="4">4x</button>
@@ -452,7 +453,7 @@
                 <h2>Financial Overview</h2>
                 <div class="stat-card">
                     <div class="stat-label">Balance</div>
-                    <div class="stat-value" id="balance">$2,000,000</div>
+                    <div class="stat-value" id="balance">$50,000,000</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Weekly Revenue</div>
@@ -705,6 +706,69 @@
                 maintenanceCost: 11000,
                 purchasePrice: 65000000,
                 depreciationRate: 0.02
+            },
+            'A220-300': {
+                name: 'Airbus A220-300',
+                capacity: 160,
+                range: 2650,
+                fuelConsumption: 2.0,
+                maintenanceCost: 12000,
+                purchasePrice: 55000000,
+                depreciationRate: 0.02
+            },
+            'B787-9': {
+                name: 'Boeing 787-9 Dreamliner',
+                capacity: 296,
+                range: 7635,
+                fuelConsumption: 4.2,
+                maintenanceCost: 28000,
+                purchasePrice: 285000000,
+                depreciationRate: 0.025
+            },
+            'A350-900': {
+                name: 'Airbus A350-900',
+                capacity: 325,
+                range: 8100,
+                fuelConsumption: 4.5,
+                maintenanceCost: 32000,
+                purchasePrice: 310000000,
+                depreciationRate: 0.025
+            },
+            'Q400': {
+                name: 'Bombardier Q400',
+                capacity: 86,
+                range: 2040,
+                fuelConsumption: 1.1,
+                maintenanceCost: 7500,
+                purchasePrice: 32000000,
+                depreciationRate: 0.02
+            },
+            'ATR-72': {
+                name: 'ATR 72-600',
+                capacity: 78,
+                range: 1550,
+                fuelConsumption: 0.9,
+                maintenanceCost: 6500,
+                purchasePrice: 28000000,
+                depreciationRate: 0.02
+            },
+            'B747-8': {
+                name: 'Boeing 747-8 Freighter',
+                capacity: 400,
+                range: 8130,
+                fuelConsumption: 7.0,
+                maintenanceCost: 50000,
+                purchasePrice: 380000000,
+                depreciationRate: 0.03
+            },
+            'A330-300': {
+                name: 'Airbus A330-300',
+                capacity: 406,
+                range: 7400,
+                fuelConsumption: 5.5,
+                maintenanceCost: 38000,
+                purchasePrice: 320000000,
+                depreciationRate: 0.025
             }
         };
 
@@ -721,12 +785,13 @@
             constructor() {
                 this.airlineName = 'My Airline';
                 this.iataCode = 'MYA';
-                this.balance = 2000000;
+                this.balance = 50000000;
                 this.aircraft = [];
                 this.routes = [];
                 this.week = 1;
                 this.year = 1;
                 this.gameSpeed = 2;
+                this.isRunning = false;
                 this.activityLog = [];
                 this.weeklyStats = {
                     revenue: 0,
@@ -1121,10 +1186,19 @@
                 `;
             }
 
+            togglePause() {
+                this.isRunning = !this.isRunning;
+                const btn = document.getElementById('pause-btn');
+                btn.textContent = this.isRunning ? '⏸️ Pause' : '▶️ Play';
+                this.addActivity(this.isRunning ? 'Game resumed' : 'Game paused');
+            }
+
             gameLoop() {
                 setInterval(() => {
-                    for (let i = 0; i < this.gameSpeed; i++) {
-                        this.simulateWeek();
+                    if (this.isRunning) {
+                        for (let i = 0; i < this.gameSpeed; i++) {
+                            this.simulateWeek();
+                        }
                     }
                     this.updateUI();
                 }, 1000);
