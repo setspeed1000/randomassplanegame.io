@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airline Tycoon - Management Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .time-display {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            gap: 20px;
+            padding: 20px;
+            max-height: calc(100vh - 180px);
+            overflow-y: auto;
+        }
+
+        .sidebar {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #ddd;
+        }
+
+        .sidebar h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-value.profit {
+            color: #28a745;
+        }
+
+        .stat-value.loss {
+            color: #dc3545;
+        }
+
+        .tab-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            background: #667eea;
+            color: white;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button.active {
+            background: #764ba2;
+        }
+
+        button.secondary {
+            background: #6c757d;
+        }
+
+        button.secondary:hover {
+            background: #5a6268;
+        }
+
+        button.danger {
+            background: #dc3545;
+        }
+
+        button.danger:hover {
+            background: #c82333;
+        }
+
+        .button-small {
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+
+        .main-panel {
+            background: white;
+        }
+
+        .panel-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 2px solid #667eea;
+            margin-bottom: 20px;
+        }
+
+        .panel-header h2 {
+            color: #333;
+            font-size: 20px;
+        }
+
+        .panel-content {
+            padding: 20px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+
+        .price-display {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 5px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-color: #28a745;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #dc3545;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-color: #17a2b8;
+        }
+
+        .route-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+        .route-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .route-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            font-size: 12px;
+        }
+
+        .stat-mini {
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .stat-mini-label {
+            color: #999;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        .stat-mini-value {
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s;
+        }
+
+        .speed-control {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .speed-control label {
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .speed-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .speed-buttons button {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .aircraft-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .aircraft-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border: 2px solid #ddd;
+        }
+
+        .aircraft-card.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .aircraft-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .aircraft-detail {
+            font-size: 12px;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>✈️ Airline Tycoon</h1>
+                <p id="airline-name-header">Welcome to Airline Management</p>
+            </div>
+            <div class="time-display">
+                Year: <span id="year">1</span> | Week: <span id="week">1</span>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="speed-control">
+                    <label>Game Speed:</label>
+                    <div class="speed-buttons">
+                        <button class="speed-btn" data-speed="1">1x</button>
+                        <button class="speed-btn active" data-speed="2">2x</button>
+                        <button class="speed-btn" data-speed="4">4x</button>
+                    </div>
+                </div>
+
+                <h2>Financial Overview</h2>
+                <div class="stat-card">
+                    <div class="stat-label">Balance</div>
+                    <div class="stat-value" id="balance">$2,000,000</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Weekly Revenue</div>
+                    <div class="stat-value profit" id="weekly-revenue">$0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Weekly Expenses</div>
+                    <div class="stat-value" id="weekly-expenses">$0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Net Profit/Loss</div>
+                    <div class="stat-value" id="net-profit">$0</div>
+                </div>
+
+                <h2 style="margin-top: 25px;">Fleet Summary</h2>
+                <div class="stat-card">
+                    <div class="stat-label">Aircraft Owned</div>
+                    <div class="stat-value" id="aircraft-count">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Routes Operated</div>
+                    <div class="stat-value" id="route-count">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Capacity</div>
+                    <div class="stat-value" id="total-capacity">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Load Factor</div>
+                    <div class="stat-value" id="avg-load">0%</div>
+                </div>
+
+                <div class="tab-buttons" style="margin-top: 25px;">
+                    <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+                    <button class="tab-btn" data-tab="aircraft">Fleet</button>
+                    <button class="tab-btn" data-tab="routes">Routes</button>
+                    <button class="tab-btn" data-tab="finance">Finance</button>
+                </div>
+            </div>
+
+            <div class="main-panel">
+                <div id="dashboard" class="tab-content active">
+                    <div class="panel-header">
+                        <h2>Dashboard</h2>
+                    </div>
+                    <div class="panel-content">
+                        <div class="grid-2">
+                            <div>
+                                <h3 style="margin-bottom: 15px; color: #667eea;">Quick Actions</h3>
+                                <button onclick="game.showPurchaseModal()" style="width: 100%; margin-bottom: 10px;">📦 Purchase Aircraft</button>
+                                <button onclick="game.showAddRouteModal()" style="width: 100%; margin-bottom: 10px;">🛫 Add Route</button>
+                                <button onclick="game.showAirlineModal()" style="width: 100%; margin-bottom: 10px;">✏️ Edit Airline</button>
+                            </div>
+                            <div>
+                                <h3 style="margin-bottom: 15px; color: #667eea;">Game Stats</h3>
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
+                                    <p style="margin-bottom: 10px;"><strong>Reputation:</strong> <span id="reputation">Neutral</span></p>
+                                    <p style="margin-bottom: 10px;"><strong>Bankruptcy Risk:</strong> <span id="bankruptcy-risk" style="color: #28a745;">Low</span></p>
+                                    <p style="margin-bottom: 10px;"><strong>Total Passengers:</strong> <span id="total-passengers">0</span></p>
+                                    <p><strong>Avg Ticket Price:</strong> <span id="avg-ticket">$150</span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 style="margin-top: 30px; margin-bottom: 15px; color: #667eea;">Recent Activity</h3>
+                        <div id="activity-log" style="background: #f8f9fa; padding: 15px; border-radius: 6px; max-height: 250px; overflow-y: auto;">
+                            <p style="color: #999; text-align: center;">No activity yet</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="aircraft" class="tab-content">
+                    <div class="panel-header">
+                        <h2>Fleet Management</h2>
+                    </div>
+                    <div class="panel-content">
+                        <button onclick="game.showPurchaseModal()" style="margin-bottom: 20px;">+ Purchase New Aircraft</button>
+                        <div id="aircraft-list" class="aircraft-grid">
+                            <div class="empty-state">
+                                <p>No aircraft yet. Start by purchasing your first plane!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="routes" class="tab-content">
+                    <div class="panel-header">
+                        <h2>Route Management</h2>
+                    </div>
+                    <div class="panel-content">
+                        <button onclick="game.showAddRouteModal()" style="margin-bottom: 20px;">+ Add New Route</button>
+                        <div id="routes-list">
+                            <div class="empty-state">
+                                <p>No routes yet. Add your first route to start operations!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="finance" class="tab-content">
+                    <div class="panel-header">
+                        <h2>Financial Report</h2>
+                    </div>
+                    <div class="panel-content">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Amount</th>
+                                    <th>% of Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="finance-table">
+                                <tr>
+                                    <td colspan="3" style="text-align: center; color: #999;">No financial data yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Purchase Aircraft Modal -->
+    <div id="purchaseModal" class="modal">
+        <div class="modal-content">
+            <h2>Purchase Aircraft</h2>
+            <div id="aircraft-list-purchase"></div>
+            <div class="modal-buttons">
+                <button class="secondary" onclick="game.closePurchaseModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Route Modal -->
+    <div id="addRouteModal" class="modal">
+        <div class="modal-content">
+            <h2>Add New Route</h2>
+            <div class="input-group">
+                <label>Select Aircraft:</label>
+                <select id="route-aircraft">
+                    <option>Select an aircraft...</option>
+                </select>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Origin City:</label>
+                    <select id="route-origin"></select>
+                </div>
+                <div class="input-group">
+                    <label>Destination City:</label>
+                    <select id="route-destination"></select>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Ticket Price: $<span id="ticket-price-display">150</span></label>
+                <input type="range" id="ticket-price" min="50" max="500" value="150" step="10">
+            </div>
+            <div class="input-group">
+                <label>Flights per Week:</label>
+                <select id="flights-per-week">
+                    <option value="1">1</option>
+                    <option value="2" selected>2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button class="secondary" onclick="game.closeAddRouteModal()">Cancel</button>
+                <button onclick="game.addRoute()">Create Route</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Airline Modal -->
+    <div id="airlineModal" class="modal">
+        <div class="modal-content">
+            <h2>Airline Settings</h2>
+            <div class="input-group">
+                <label>Airline Name:</label>
+                <input type="text" id="airline-name-input" placeholder="Enter airline name">
+            </div>
+            <div class="input-group">
+                <label>IATA Code:</label>
+                <input type="text" id="airline-iata-input" placeholder="3 letters" maxlength="3">
+            </div>
+            <div class="modal-buttons">
+                <button class="secondary" onclick="game.closeAirlineModal()">Cancel</button>
+                <button onclick="game.updateAirline()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const AIRCRAFT_DATABASE = {
+            'B737-800': {
+                name: 'Boeing 737-800',
+                capacity: 189,
+                range: 2600,
+                fuelConsumption: 2.5,
+                maintenanceCost: 15000,
+                purchasePrice: 89000000,
+                depreciationRate: 0.02
+            },
+            'A320-200': {
+                name: 'Airbus A320-200',
+                capacity: 194,
+                range: 2700,
+                fuelConsumption: 2.4,
+                maintenanceCost: 14000,
+                purchasePrice: 85000000,
+                depreciationRate: 0.02
+            },
+            'B777-300ER': {
+                name: 'Boeing 777-300ER',
+                capacity: 396,
+                range: 7600,
+                fuelConsumption: 5.2,
+                maintenanceCost: 35000,
+                purchasePrice: 350000000,
+                depreciationRate: 0.025
+            },
+            'A380-800': {
+                name: 'Airbus A380-800',
+                capacity: 555,
+                range: 8000,
+                fuelConsumption: 6.8,
+                maintenanceCost: 45000,
+                purchasePrice: 430000000,
+                depreciationRate: 0.03
+            },
+            'CRJ-900': {
+                name: 'Bombardier CRJ-900',
+                capacity: 90,
+                range: 2000,
+                fuelConsumption: 1.2,
+                maintenanceCost: 8000,
+                purchasePrice: 35000000,
+                depreciationRate: 0.02
+            },
+            'E195': {
+                name: 'Embraer E195',
+                capacity: 146,
+                range: 2650,
+                fuelConsumption: 1.8,
+                maintenanceCost: 11000,
+                purchasePrice: 65000000,
+                depreciationRate: 0.02
+            }
+        };
+
+        const CITIES = [
+            'New York', 'Los Angeles', 'Chicago', 'Dallas', 'Houston',
+            'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'San Jose',
+            'London', 'Paris', 'Tokyo', 'Sydney', 'Dubai',
+            'Singapore', 'Hong Kong', 'Frankfurt', 'Amsterdam', 'Bangkok'
+        ];
+
+        const FUEL_PRICE = 3; // per unit
+
+        class Game {
+            constructor() {
+                this.airlineName = 'My Airline';
+                this.iataCode = 'MYA';
+                this.balance = 2000000;
+                this.aircraft = [];
+                this.routes = [];
+                this.week = 1;
+                this.year = 1;
+                this.gameSpeed = 2;
+                this.activityLog = [];
+                this.weeklyStats = {
+                    revenue: 0,
+                    expenses: 0,
+                    passengers: 0
+                };
+
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.updateUI();
+                this.gameLoop();
+            }
+
+            setupEventListeners() {
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                        e.target.classList.add('active');
+                        document.getElementById(e.target.dataset.tab).classList.add('active');
+                    });
+                });
+
+                document.querySelectorAll('.speed-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.gameSpeed = parseInt(e.target.dataset.speed);
+                    });
+                });
+
+                document.getElementById('ticket-price').addEventListener('input', (e) => {
+                    document.getElementById('ticket-price-display').textContent = e.target.value;
+                });
+            }
+
+            addActivity(message) {
+                this.activityLog.unshift({
+                    message,
+                    week: this.week,
+                    year: this.year
+                });
+                if (this.activityLog.length > 10) this.activityLog.pop();
+                this.updateActivityLog();
+            }
+
+            updateActivityLog() {
+                const log = document.getElementById('activity-log');
+                if (this.activityLog.length === 0) {
+                    log.innerHTML = '<p style="color: #999; text-align: center;">No activity yet</p>';
+                } else {
+                    log.innerHTML = this.activityLog.map(entry =>
+                        `<p style="margin-bottom: 8px; font-size: 12px;"><strong>Y${entry.year}W${entry.week}:</strong> ${entry.message}</p>`
+                    ).join('');
+                }
+            }
+
+            showPurchaseModal() {
+                const modal = document.getElementById('purchaseModal');
+                const container = document.getElementById('aircraft-list-purchase');
+
+                container.innerHTML = '';
+                Object.entries(AIRCRAFT_DATABASE).forEach(([code, specs]) => {
+                    const card = document.createElement('div');
+                    card.className = 'aircraft-card';
+                    card.innerHTML = `
+                        <div class="aircraft-name">${specs.name}</div>
+                        <div class="aircraft-detail">Capacity: ${specs.capacity} passengers</div>
+                        <div class="aircraft-detail">Range: ${specs.range} km</div>
+                        <div class="aircraft-detail">Price: $${(specs.purchasePrice / 1000000).toFixed(1)}M</div>
+                        <button class="button-small" onclick="game.purchaseAircraft('${code}')" style="width: 100%; margin-top: 10px;">Buy</button>
+                    `;
+                    container.appendChild(card);
+                });
+
+                modal.classList.add('active');
+            }
+
+            closePurchaseModal() {
+                document.getElementById('purchaseModal').classList.remove('active');
+            }
+
+            purchaseAircraft(aircraftCode) {
+                const specs = AIRCRAFT_DATABASE[aircraftCode];
+                if (this.balance < specs.purchasePrice) {
+                    alert('Insufficient funds!');
+                    return;
+                }
+
+                this.balance -= specs.purchasePrice;
+                this.aircraft.push({
+                    id: Date.now(),
+                    code: aircraftCode,
+                    ...specs,
+                    condition: 100,
+                    maintenanceCycles: 0
+                });
+
+                this.addActivity(`Purchased ${specs.name}`);
+                this.updateUI();
+                this.closePurchaseModal();
+            }
+
+            showAddRouteModal() {
+                if (this.aircraft.length === 0) {
+                    alert('You need at least one aircraft to add routes!');
+                    return;
+                }
+
+                const modal = document.getElementById('addRouteModal');
+                const aircraftSelect = document.getElementById('route-aircraft');
+                const originSelect = document.getElementById('route-origin');
+                const destSelect = document.getElementById('route-destination');
+
+                aircraftSelect.innerHTML = '<option>Select an aircraft...</option>';
+                this.aircraft.forEach(a => {
+                    const option = document.createElement('option');
+                    option.value = a.id;
+                    option.textContent = `${a.name} (Cap: ${a.capacity})`;
+                    aircraftSelect.appendChild(option);
+                });
+
+                const cityOptions = CITIES.map(c => `<option>${c}</option>`).join('');
+                originSelect.innerHTML = cityOptions;
+                destSelect.innerHTML = cityOptions;
+
+                modal.classList.add('active');
+            }
+
+            closeAddRouteModal() {
+                document.getElementById('addRouteModal').classList.remove('active');
+            }
+
+            addRoute() {
+                const aircraftId = parseInt(document.getElementById('route-aircraft').value);
+                const origin = document.getElementById('route-origin').value;
+                const destination = document.getElementById('route-destination').value;
+                const ticketPrice = parseInt(document.getElementById('ticket-price').value);
+                const flightsPerWeek = parseInt(document.getElementById('flights-per-week').value);
+
+                if (!aircraftId || origin === destination) {
+                    alert('Please select valid cities!');
+                    return;
+                }
+
+                const aircraft = this.aircraft.find(a => a.id === aircraftId);
+                const distance = Math.random() * 4000 + 500;
+
+                if (distance > aircraft.range) {
+                    alert('This aircraft cannot fly this distance!');
+                    return;
+                }
+
+                this.routes.push({
+                    id: Date.now(),
+                    aircraftId,
+                    origin,
+                    destination,
+                    ticketPrice,
+                    flightsPerWeek,
+                    distance,
+                    passengers: 0,
+                    reputation: 1
+                });
+
+                this.addActivity(`Added route: ${origin} → ${destination}`);
+                this.updateUI();
+                this.closeAddRouteModal();
+            }
+
+            showAirlineModal() {
+                document.getElementById('airline-name-input').value = this.airlineName;
+                document.getElementById('airline-iata-input').value = this.iataCode;
+                document.getElementById('airlineModal').classList.add('active');
+            }
+
+            closeAirlineModal() {
+                document.getElementById('airlineModal').classList.remove('active');
+            }
+
+            updateAirline() {
+                this.airlineName = document.getElementById('airline-name-input').value || 'My Airline';
+                this.iataCode = document.getElementById('airline-iata-input').value.toUpperCase() || 'MYA';
+                this.updateUI();
+                this.closeAirlineModal();
+            }
+
+            simulateWeek() {
+                this.weeklyStats = {
+                    revenue: 0,
+                    expenses: 0,
+                    passengers: 0
+                };
+
+                this.routes.forEach(route => {
+                    const aircraft = this.aircraft.find(a => a.id === route.aircraftId);
+                    if (!aircraft) return;
+
+                    // Passenger demand simulation
+                    const baseDemand = 200 * route.flightsPerWeek;
+                    const priceElasticity = Math.max(0.3, 1.5 - (route.ticketPrice / 500));
+                    const demand = baseDemand * priceElasticity * route.reputation;
+
+                    const passengers = Math.min(
+                        Math.floor(demand),
+                        aircraft.capacity * route.flightsPerWeek
+                    );
+
+                    // Revenue
+                    const revenue = passengers * route.ticketPrice;
+                    this.weeklyStats.revenue += revenue;
+                    this.weeklyStats.passengers += passengers;
+
+                    // Expenses
+                    const fuelCost = aircraft.fuelConsumption * route.distance * route.flightsPerWeek * FUEL_PRICE;
+                    const maintenanceCost = (aircraft.maintenanceCost * route.flightsPerWeek) / 4;
+                    const crewCost = 5000 * route.flightsPerWeek;
+                    const landingFees = 2000 * route.flightsPerWeek;
+
+                    const routeExpenses = fuelCost + maintenanceCost + crewCost + landingFees;
+                    this.weeklyStats.expenses += routeExpenses;
+
+                    // Update reputation based on load factor
+                    const loadFactor = passengers / (aircraft.capacity * route.flightsPerWeek);
+                    if (loadFactor > 0.85) {
+                        route.reputation = Math.min(1.5, route.reputation + 0.05);
+                    } else if (loadFactor < 0.5) {
+                        route.reputation = Math.max(0.5, route.reputation - 0.05);
+                    }
+
+                    route.passengers = passengers;
+                });
+
+                const netProfit = this.weeklyStats.revenue - this.weeklyStats.expenses;
+                this.balance += netProfit;
+
+                if (netProfit > 0) {
+                    this.addActivity(`Weekly profit: +$${Math.floor(netProfit).toLocaleString()}`);
+                } else if (netProfit < 0) {
+                    this.addActivity(`Weekly loss: $${Math.floor(netProfit).toLocaleString()}`);
+                }
+
+                this.week++;
+                if (this.week > 52) {
+                    this.week = 1;
+                    this.year++;
+                }
+            }
+
+            updateUI() {
+                document.getElementById('airline-name-header').textContent = `${this.iataCode} - ${this.airlineName}`;
+                document.getElementById('year').textContent = this.year;
+                document.getElementById('week').textContent = this.week;
+                document.getElementById('balance').textContent = `$${this.balance.toLocaleString()}`;
+                document.getElementById('aircraft-count').textContent = this.aircraft.length;
+                document.getElementById('route-count').textContent = this.routes.length;
+                document.getElementById('weekly-revenue').textContent = `$${Math.floor(this.weeklyStats.revenue).toLocaleString()}`;
+                document.getElementById('weekly-expenses').textContent = `$${Math.floor(this.weeklyStats.expenses).toLocaleString()}`;
+
+                const netProfit = this.weeklyStats.revenue - this.weeklyStats.expenses;
+                const netElement = document.getElementById('net-profit');
+                netElement.textContent = `$${Math.floor(netProfit).toLocaleString()}`;
+                netElement.className = netProfit >= 0 ? 'stat-value profit' : 'stat-value loss';
+
+                const totalCapacity = this.aircraft.reduce((sum, a) => sum + a.capacity, 0);
+                document.getElementById('total-capacity').textContent = totalCapacity.toLocaleString();
+
+                const avgLoad = this.routes.length > 0
+                    ? Math.round((this.weeklyStats.passengers / (totalCapacity * this.routes.reduce((sum, r) => sum + r.flightsPerWeek, 0))) * 100)
+                    : 0;
+                document.getElementById('avg-load').textContent = avgLoad + '%';
+
+                document.getElementById('total-passengers').textContent = Math.floor(this.weeklyStats.passengers).toLocaleString();
+
+                // Update reputation
+                const avgReputation = this.routes.length > 0
+                    ? this.routes.reduce((sum, r) => sum + r.reputation, 0) / this.routes.length
+                    : 1;
+                const repLevel = avgReputation > 1.3 ? 'Excellent' : avgReputation > 1.1 ? 'Good' : avgReputation > 0.9 ? 'Neutral' : 'Poor';
+                document.getElementById('reputation').textContent = repLevel;
+
+                // Bankruptcy risk
+                const riskLevel = this.balance < 0 ? 'Critical' : this.balance < 500000 ? 'High' : this.balance < 1000000 ? 'Medium' : 'Low';
+                const riskElement = document.getElementById('bankruptcy-risk');
+                riskElement.textContent = riskLevel;
+                riskElement.style.color = riskLevel === 'Critical' ? '#dc3545' : riskLevel === 'High' ? '#fd7e14' : '#28a745';
+
+                this.updateAircraftList();
+                this.updateRoutesList();
+                this.updateFinanceTable();
+            }
+
+            updateAircraftList() {
+                const container = document.getElementById('aircraft-list');
+                if (this.aircraft.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>No aircraft yet. Start by purchasing your first plane!</p></div>';
+                    return;
+                }
+
+                container.innerHTML = this.aircraft.map(a => `
+                    <div class="aircraft-card">
+                        <div class="aircraft-name">${a.name}</div>
+                        <div class="aircraft-detail">Capacity: ${a.capacity} passengers</div>
+                        <div class="aircraft-detail">Range: ${a.range} km</div>
+                        <div class="aircraft-detail">Condition: ${a.condition}%</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${a.condition}%"></div>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 12px; color: #999;">
+                            Routes: ${this.routes.filter(r => r.aircraftId === a.id).length}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            updateRoutesList() {
+                const container = document.getElementById('routes-list');
+                if (this.routes.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>No routes yet. Add your first route to start operations!</p></div>';
+                    return;
+                }
+
+                container.innerHTML = this.routes.map(route => {
+                    const aircraft = this.aircraft.find(a => a.id === route.aircraftId);
+                    const loadFactor = Math.round((route.passengers / (aircraft.capacity * route.flightsPerWeek)) * 100);
+                    return `
+                        <div class="route-item">
+                            <div class="route-header">
+                                <div><strong>${route.origin} → ${route.destination}</strong></div>
+                                <button class="button-small danger" onclick="game.removeRoute(${route.id})">Delete</button>
+                            </div>
+                            <div class="route-stats">
+                                <div class="stat-mini">
+                                    <div class="stat-mini-label">Aircraft</div>
+                                    <div class="stat-mini-value">${aircraft.name.substring(0, 12)}</div>
+                                </div>
+                                <div class="stat-mini">
+                                    <div class="stat-mini-label">Passengers</div>
+                                    <div class="stat-mini-value">${route.passengers}/${aircraft.capacity * route.flightsPerWeek}</div>
+                                </div>
+                                <div class="stat-mini">
+                                    <div class="stat-mini-label">Price</div>
+                                    <div class="stat-mini-value">$${route.ticketPrice}</div>
+                                </div>
+                                <div class="stat-mini">
+                                    <div class="stat-mini-label">Load Factor</div>
+                                    <div class="stat-mini-value">${loadFactor}%</div>
+                                </div>
+                            </div>
+                            <div class="progress-bar" style="margin-top: 10px;">
+                                <div class="progress-fill" style="width: ${loadFactor}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            removeRoute(routeId) {
+                this.routes = this.routes.filter(r => r.id !== routeId);
+                this.addActivity('Route removed');
+                this.updateUI();
+            }
+
+            updateFinanceTable() {
+                const table = document.getElementById('finance-table');
+                const total = this.weeklyStats.expenses + this.weeklyStats.revenue;
+
+                if (total === 0) {
+                    table.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #999;">No financial data yet</td></tr>';
+                    return;
+                }
+
+                table.innerHTML = `
+                    <tr style="background: #d4edda;">
+                        <td><strong>Revenue</strong></td>
+                        <td>$${Math.floor(this.weeklyStats.revenue).toLocaleString()}</td>
+                        <td>${((this.weeklyStats.revenue / total) * 100).toFixed(1)}%</td>
+                    </tr>
+                    <tr style="background: #f8d7da;">
+                        <td><strong>Expenses</strong></td>
+                        <td>$${Math.floor(this.weeklyStats.expenses).toLocaleString()}</td>
+                        <td>${((this.weeklyStats.expenses / total) * 100).toFixed(1)}%</td>
+                    </tr>
+                    <tr style="background: #d1ecf1; font-weight: bold;">
+                        <td>Net Profit/Loss</td>
+                        <td>$${Math.floor(this.weeklyStats.revenue - this.weeklyStats.expenses).toLocaleString()}</td>
+                        <td>100%</td>
+                    </tr>
+                `;
+            }
+
+            gameLoop() {
+                setInterval(() => {
+                    for (let i = 0; i < this.gameSpeed; i++) {
+                        this.simulateWeek();
+                    }
+                    this.updateUI();
+                }, 1000);
+            }
+        }
+
+        const game = new Game();
+    </script>
+</body>
+</html>
