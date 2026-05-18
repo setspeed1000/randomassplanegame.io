@@ -582,7 +582,8 @@
     <div id="purchaseModal" class="modal">
         <div class="modal-content">
             <h2>Purchase Aircraft</h2>
-            <div id="aircraft-list-purchase"></div>
+            <div id="manufacturer-tabs" style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;"></div>
+            <div id="aircraft-list-purchase" class="aircraft-grid"></div>
             <div class="modal-buttons">
                 <button class="secondary" onclick="game.closePurchaseModal()">Cancel</button>
             </div>
@@ -611,11 +612,12 @@
             </div>
             <div class="input-group">
                 <label>Ticket Price: $<span id="ticket-price-display">150</span></label>
-                <input type="range" id="ticket-price" min="50" max="500" value="150" step="10">
+                <input type="range" id="ticket-price" min="50" max="500" value="150" step="10" onchange="game.updateRoutePreview()" oninput="game.updateRoutePreview()">
+                <div style="font-size: 12px; color: #999; margin-top: 8px;">Higher prices reduce demand</div>
             </div>
             <div class="input-group">
                 <label>Flights per Week:</label>
-                <select id="flights-per-week">
+                <select id="flights-per-week" onchange="game.updateRoutePreview()">
                     <option value="1">1</option>
                     <option value="2" selected>2</option>
                     <option value="3">3</option>
@@ -624,6 +626,10 @@
                     <option value="6">6</option>
                     <option value="7">7</option>
                 </select>
+            </div>
+            <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                <div style="font-size: 12px; font-weight: bold; color: #333; margin-bottom: 8px;">Route Preview</div>
+                <div id="route-preview">Select an aircraft to see details</div>
             </div>
             <div class="modal-buttons">
                 <button class="secondary" onclick="game.closeAddRouteModal()">Cancel</button>
@@ -653,8 +659,20 @@
 
     <script>
         const AIRCRAFT_DATABASE = {
+            // Boeing Narrow-body
+            'B737-700': {
+                name: 'Boeing 737-700',
+                manufacturer: 'Boeing',
+                capacity: 149,
+                range: 2890,
+                fuelConsumption: 2.3,
+                maintenanceCost: 14000,
+                purchasePrice: 75000000,
+                depreciationRate: 0.02
+            },
             'B737-800': {
                 name: 'Boeing 737-800',
+                manufacturer: 'Boeing',
                 capacity: 189,
                 range: 2600,
                 fuelConsumption: 2.5,
@@ -662,17 +680,60 @@
                 purchasePrice: 89000000,
                 depreciationRate: 0.02
             },
-            'A320-200': {
-                name: 'Airbus A320-200',
-                capacity: 194,
-                range: 2700,
-                fuelConsumption: 2.4,
-                maintenanceCost: 14000,
-                purchasePrice: 85000000,
+            'B737-900': {
+                name: 'Boeing 737-900',
+                manufacturer: 'Boeing',
+                capacity: 201,
+                range: 2100,
+                fuelConsumption: 2.6,
+                maintenanceCost: 15500,
+                purchasePrice: 92000000,
                 depreciationRate: 0.02
+            },
+            'B737-MAX8': {
+                name: 'Boeing 737 MAX 8',
+                manufacturer: 'Boeing',
+                capacity: 194,
+                range: 3550,
+                fuelConsumption: 2.2,
+                maintenanceCost: 14500,
+                purchasePrice: 100000000,
+                depreciationRate: 0.02
+            },
+            // Boeing Wide-body
+            'B757-200': {
+                name: 'Boeing 757-200',
+                manufacturer: 'Boeing',
+                capacity: 228,
+                range: 3900,
+                fuelConsumption: 3.1,
+                maintenanceCost: 19000,
+                purchasePrice: 145000000,
+                depreciationRate: 0.022
+            },
+            'B767-300': {
+                name: 'Boeing 767-300',
+                manufacturer: 'Boeing',
+                capacity: 261,
+                range: 5200,
+                fuelConsumption: 3.8,
+                maintenanceCost: 23000,
+                purchasePrice: 175000000,
+                depreciationRate: 0.023
+            },
+            'B777-200': {
+                name: 'Boeing 777-200',
+                manufacturer: 'Boeing',
+                capacity: 328,
+                range: 7065,
+                fuelConsumption: 5.0,
+                maintenanceCost: 32000,
+                purchasePrice: 300000000,
+                depreciationRate: 0.025
             },
             'B777-300ER': {
                 name: 'Boeing 777-300ER',
+                manufacturer: 'Boeing',
                 capacity: 396,
                 range: 7600,
                 fuelConsumption: 5.2,
@@ -680,44 +741,19 @@
                 purchasePrice: 350000000,
                 depreciationRate: 0.025
             },
-            'A380-800': {
-                name: 'Airbus A380-800',
-                capacity: 555,
-                range: 8000,
-                fuelConsumption: 6.8,
-                maintenanceCost: 45000,
-                purchasePrice: 430000000,
-                depreciationRate: 0.03
-            },
-            'CRJ-900': {
-                name: 'Bombardier CRJ-900',
-                capacity: 90,
-                range: 2000,
-                fuelConsumption: 1.2,
-                maintenanceCost: 8000,
-                purchasePrice: 35000000,
-                depreciationRate: 0.02
-            },
-            'E195': {
-                name: 'Embraer E195',
-                capacity: 146,
-                range: 2650,
-                fuelConsumption: 1.8,
-                maintenanceCost: 11000,
-                purchasePrice: 65000000,
-                depreciationRate: 0.02
-            },
-            'A220-300': {
-                name: 'Airbus A220-300',
-                capacity: 160,
-                range: 2650,
-                fuelConsumption: 2.0,
-                maintenanceCost: 12000,
-                purchasePrice: 55000000,
-                depreciationRate: 0.02
+            'B787-8': {
+                name: 'Boeing 787-8 Dreamliner',
+                manufacturer: 'Boeing',
+                capacity: 250,
+                range: 7355,
+                fuelConsumption: 3.8,
+                maintenanceCost: 26000,
+                purchasePrice: 260000000,
+                depreciationRate: 0.024
             },
             'B787-9': {
                 name: 'Boeing 787-9 Dreamliner',
+                manufacturer: 'Boeing',
                 capacity: 296,
                 range: 7635,
                 fuelConsumption: 4.2,
@@ -725,8 +761,101 @@
                 purchasePrice: 285000000,
                 depreciationRate: 0.025
             },
+            'B747-400': {
+                name: 'Boeing 747-400',
+                manufacturer: 'Boeing',
+                capacity: 416,
+                range: 7260,
+                fuelConsumption: 6.5,
+                maintenanceCost: 48000,
+                purchasePrice: 365000000,
+                depreciationRate: 0.03
+            },
+            'B747-8': {
+                name: 'Boeing 747-8',
+                manufacturer: 'Boeing',
+                capacity: 467,
+                range: 8000,
+                fuelConsumption: 7.2,
+                maintenanceCost: 52000,
+                purchasePrice: 410000000,
+                depreciationRate: 0.03
+            },
+            // Airbus Narrow-body
+            'A220-300': {
+                name: 'Airbus A220-300',
+                manufacturer: 'Airbus',
+                capacity: 160,
+                range: 2650,
+                fuelConsumption: 2.0,
+                maintenanceCost: 12000,
+                purchasePrice: 55000000,
+                depreciationRate: 0.02
+            },
+            'A320-200': {
+                name: 'Airbus A320-200',
+                manufacturer: 'Airbus',
+                capacity: 194,
+                range: 2700,
+                fuelConsumption: 2.4,
+                maintenanceCost: 14000,
+                purchasePrice: 85000000,
+                depreciationRate: 0.02
+            },
+            'A321-200': {
+                name: 'Airbus A321-200',
+                manufacturer: 'Airbus',
+                capacity: 236,
+                range: 2100,
+                fuelConsumption: 2.7,
+                maintenanceCost: 15000,
+                purchasePrice: 98000000,
+                depreciationRate: 0.02
+            },
+            'A321XLR': {
+                name: 'Airbus A321 XLR',
+                manufacturer: 'Airbus',
+                capacity: 244,
+                range: 4550,
+                fuelConsumption: 2.9,
+                maintenanceCost: 16500,
+                purchasePrice: 120000000,
+                depreciationRate: 0.021
+            },
+            // Airbus Wide-body
+            'A300-600': {
+                name: 'Airbus A300-600',
+                manufacturer: 'Airbus',
+                capacity: 305,
+                range: 3100,
+                fuelConsumption: 4.0,
+                maintenanceCost: 22000,
+                purchasePrice: 155000000,
+                depreciationRate: 0.025
+            },
+            'A330-200': {
+                name: 'Airbus A330-200',
+                manufacturer: 'Airbus',
+                capacity: 335,
+                range: 7400,
+                fuelConsumption: 5.0,
+                maintenanceCost: 35000,
+                purchasePrice: 290000000,
+                depreciationRate: 0.025
+            },
+            'A330-300': {
+                name: 'Airbus A330-300',
+                manufacturer: 'Airbus',
+                capacity: 406,
+                range: 7400,
+                fuelConsumption: 5.5,
+                maintenanceCost: 38000,
+                purchasePrice: 320000000,
+                depreciationRate: 0.025
+            },
             'A350-900': {
                 name: 'Airbus A350-900',
+                manufacturer: 'Airbus',
                 capacity: 325,
                 range: 8100,
                 fuelConsumption: 4.5,
@@ -734,8 +863,50 @@
                 purchasePrice: 310000000,
                 depreciationRate: 0.025
             },
+            'A350-1000': {
+                name: 'Airbus A350-1000',
+                manufacturer: 'Airbus',
+                capacity: 369,
+                range: 8700,
+                fuelConsumption: 4.8,
+                maintenanceCost: 35000,
+                purchasePrice: 345000000,
+                depreciationRate: 0.026
+            },
+            'A380-800': {
+                name: 'Airbus A380-800',
+                manufacturer: 'Airbus',
+                capacity: 555,
+                range: 8000,
+                fuelConsumption: 6.8,
+                maintenanceCost: 45000,
+                purchasePrice: 430000000,
+                depreciationRate: 0.03
+            },
+            // Bombardier
+            'CRJ-700': {
+                name: 'Bombardier CRJ-700',
+                manufacturer: 'Bombardier',
+                capacity: 78,
+                range: 1875,
+                fuelConsumption: 1.0,
+                maintenanceCost: 7000,
+                purchasePrice: 28000000,
+                depreciationRate: 0.02
+            },
+            'CRJ-900': {
+                name: 'Bombardier CRJ-900',
+                manufacturer: 'Bombardier',
+                capacity: 90,
+                range: 2000,
+                fuelConsumption: 1.2,
+                maintenanceCost: 8000,
+                purchasePrice: 35000000,
+                depreciationRate: 0.02
+            },
             'Q400': {
                 name: 'Bombardier Q400',
+                manufacturer: 'Bombardier',
                 capacity: 86,
                 range: 2040,
                 fuelConsumption: 1.1,
@@ -743,8 +914,101 @@
                 purchasePrice: 32000000,
                 depreciationRate: 0.02
             },
+            'CS300': {
+                name: 'Bombardier C Series CS300',
+                manufacturer: 'Bombardier',
+                capacity: 160,
+                range: 3100,
+                fuelConsumption: 1.9,
+                maintenanceCost: 11500,
+                purchasePrice: 58000000,
+                depreciationRate: 0.021
+            },
+            // Embraer
+            'E135': {
+                name: 'Embraer E135',
+                manufacturer: 'Embraer',
+                capacity: 50,
+                range: 2600,
+                fuelConsumption: 0.8,
+                maintenanceCost: 5500,
+                purchasePrice: 22000000,
+                depreciationRate: 0.02
+            },
+            'E145': {
+                name: 'Embraer E145',
+                manufacturer: 'Embraer',
+                capacity: 66,
+                range: 2200,
+                fuelConsumption: 0.95,
+                maintenanceCost: 6500,
+                purchasePrice: 25000000,
+                depreciationRate: 0.02
+            },
+            'E170': {
+                name: 'Embraer E170',
+                manufacturer: 'Embraer',
+                capacity: 92,
+                range: 2200,
+                fuelConsumption: 1.15,
+                maintenanceCost: 7500,
+                purchasePrice: 32000000,
+                depreciationRate: 0.02
+            },
+            'E175': {
+                name: 'Embraer E175',
+                manufacturer: 'Embraer',
+                capacity: 110,
+                range: 2300,
+                fuelConsumption: 1.35,
+                maintenanceCost: 8500,
+                purchasePrice: 38000000,
+                depreciationRate: 0.02
+            },
+            'E190': {
+                name: 'Embraer E190',
+                manufacturer: 'Embraer',
+                capacity: 124,
+                range: 2550,
+                fuelConsumption: 1.6,
+                maintenanceCost: 9500,
+                purchasePrice: 55000000,
+                depreciationRate: 0.02
+            },
+            'E195': {
+                name: 'Embraer E195',
+                manufacturer: 'Embraer',
+                capacity: 146,
+                range: 2650,
+                fuelConsumption: 1.8,
+                maintenanceCost: 11000,
+                purchasePrice: 65000000,
+                depreciationRate: 0.02
+            },
+            'E2-190': {
+                name: 'Embraer E2-190',
+                manufacturer: 'Embraer',
+                capacity: 144,
+                range: 3400,
+                fuelConsumption: 1.5,
+                maintenanceCost: 10000,
+                purchasePrice: 60000000,
+                depreciationRate: 0.021
+            },
+            // ATR
+            'ATR-42': {
+                name: 'ATR 42-600',
+                manufacturer: 'ATR',
+                capacity: 50,
+                range: 1275,
+                fuelConsumption: 0.7,
+                maintenanceCost: 5000,
+                purchasePrice: 20000000,
+                depreciationRate: 0.02
+            },
             'ATR-72': {
                 name: 'ATR 72-600',
+                manufacturer: 'ATR',
                 capacity: 78,
                 range: 1550,
                 fuelConsumption: 0.9,
@@ -752,22 +1016,15 @@
                 purchasePrice: 28000000,
                 depreciationRate: 0.02
             },
-            'B747-8': {
-                name: 'Boeing 747-8 Freighter',
-                capacity: 400,
-                range: 8130,
-                fuelConsumption: 7.0,
-                maintenanceCost: 50000,
-                purchasePrice: 380000000,
-                depreciationRate: 0.03
-            },
-            'A330-300': {
-                name: 'Airbus A330-300',
-                capacity: 406,
-                range: 7400,
-                fuelConsumption: 5.5,
-                maintenanceCost: 38000,
-                purchasePrice: 320000000,
+            // Other
+            'C208': {
+                name: 'Cessna 208 Caravan',
+                manufacturer: 'Cessna',
+                capacity: 14,
+                range: 1255,
+                fuelConsumption: 0.3,
+                maintenanceCost: 2000,
+                purchasePrice: 5000000,
                 depreciationRate: 0.025
             }
         };
@@ -828,6 +1085,7 @@
 
                 document.getElementById('ticket-price').addEventListener('input', (e) => {
                     document.getElementById('ticket-price-display').textContent = e.target.value;
+                    this.updateRoutePreview();
                 });
             }
 
@@ -854,10 +1112,41 @@
 
             showPurchaseModal() {
                 const modal = document.getElementById('purchaseModal');
+                const tabsContainer = document.getElementById('manufacturer-tabs');
                 const container = document.getElementById('aircraft-list-purchase');
 
+                // Get unique manufacturers
+                const manufacturers = [...new Set(Object.values(AIRCRAFT_DATABASE).map(a => a.manufacturer))].sort();
+
+                // Create tabs
+                tabsContainer.innerHTML = '';
+                manufacturers.forEach((mfg, idx) => {
+                    const btn = document.createElement('button');
+                    btn.textContent = mfg;
+                    btn.className = idx === 0 ? 'active' : '';
+                    btn.onclick = () => game.filterAircraftByManufacturer(mfg, manufacturers);
+                    tabsContainer.appendChild(btn);
+                });
+
+                // Display first manufacturer's aircraft
+                this.filterAircraftByManufacturer(manufacturers[0], manufacturers);
+                modal.classList.add('active');
+            }
+
+            filterAircraftByManufacturer(manufacturer, manufacturers) {
+                const container = document.getElementById('aircraft-list-purchase');
+                const tabsContainer = document.getElementById('manufacturer-tabs');
+
+                // Update active tab
+                tabsContainer.querySelectorAll('button').forEach(btn => {
+                    btn.classList.toggle('active', btn.textContent === manufacturer);
+                });
+
+                // Filter and display aircraft
                 container.innerHTML = '';
                 Object.entries(AIRCRAFT_DATABASE).forEach(([code, specs]) => {
+                    if (specs.manufacturer !== manufacturer) return;
+
                     const card = document.createElement('div');
                     card.className = 'aircraft-card';
                     card.innerHTML = `
@@ -869,8 +1158,6 @@
                     `;
                     container.appendChild(card);
                 });
-
-                modal.classList.add('active');
             }
 
             closePurchaseModal() {
@@ -913,19 +1200,72 @@
                 this.aircraft.forEach(a => {
                     const option = document.createElement('option');
                     option.value = a.id;
-                    option.textContent = `${a.name} (Cap: ${a.capacity})`;
+                    option.textContent = `${a.name} (Cap: ${a.capacity}, Range: ${a.range}km)`;
                     aircraftSelect.appendChild(option);
                 });
+
+                aircraftSelect.addEventListener('change', () => game.updateRoutePreview());
 
                 const cityOptions = CITIES.map(c => `<option>${c}</option>`).join('');
                 originSelect.innerHTML = cityOptions;
                 destSelect.innerHTML = cityOptions;
 
+                originSelect.addEventListener('change', () => game.updateRoutePreview());
+                destSelect.addEventListener('change', () => game.updateRoutePreview());
+
                 modal.classList.add('active');
+                this.updateRoutePreview();
             }
 
             closeAddRouteModal() {
                 document.getElementById('addRouteModal').classList.remove('active');
+            }
+
+            updateRoutePreview() {
+                const aircraftId = parseInt(document.getElementById('route-aircraft').value);
+                const origin = document.getElementById('route-origin').value;
+                const destination = document.getElementById('route-destination').value;
+                const ticketPrice = parseInt(document.getElementById('ticket-price').value);
+                const flightsPerWeek = parseInt(document.getElementById('flights-per-week').value);
+                const previewDiv = document.getElementById('route-preview');
+
+                if (!aircraftId) {
+                    previewDiv.innerHTML = 'Select an aircraft to see details';
+                    return;
+                }
+
+                const aircraft = this.aircraft.find(a => a.id === aircraftId);
+                const distance = Math.random() * 4000 + 500;
+
+                const demand = this.calculateDemand(ticketPrice, flightsPerWeek, aircraft.capacity);
+                const revenue = demand * ticketPrice;
+                const fuelCost = aircraft.fuelConsumption * distance * flightsPerWeek * FUEL_PRICE;
+                const maintenanceCost = (aircraft.maintenanceCost * flightsPerWeek) / 4;
+                const crewCost = 5000 * flightsPerWeek;
+                const landingFees = 2000 * flightsPerWeek;
+                const totalCost = fuelCost + maintenanceCost + crewCost + landingFees;
+                const profit = revenue - totalCost;
+                const canFly = distance <= aircraft.range;
+
+                previewDiv.innerHTML = `
+                    <div style="font-size: 12px; line-height: 1.6; color: #555;">
+                        <div><strong>Route Distance:</strong> ~${Math.round(distance)}km (Aircraft range: ${aircraft.range}km) ${!canFly ? '<span style="color: #dc3545;">❌ CANNOT FLY</span>' : '<span style="color: #28a745;">✓ OK</span>'}</div>
+                        <div><strong>Expected Passengers/Week:</strong> ${Math.round(demand)}/${aircraft.capacity * flightsPerWeek}</div>
+                        <div><strong>Load Factor:</strong> ${Math.round((demand / (aircraft.capacity * flightsPerWeek)) * 100)}%</div>
+                        <div style="margin-top: 8px;"><strong>Weekly Revenue:</strong> $${Math.round(revenue).toLocaleString()}</div>
+                        <div><strong>Weekly Costs:</strong> $${Math.round(totalCost).toLocaleString()}</div>
+                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd;">
+                            <strong style="color: ${profit >= 0 ? '#28a745' : '#dc3545'};">Weekly Profit: $${Math.round(profit).toLocaleString()}</strong>
+                        </div>
+                    </div>
+                `;
+            }
+
+            calculateDemand(ticketPrice, flightsPerWeek, capacity) {
+                const baseDemand = 200 * flightsPerWeek;
+                const priceElasticity = Math.max(0.3, 1.5 - (ticketPrice / 500));
+                const demand = baseDemand * priceElasticity;
+                return Math.min(Math.floor(demand), capacity * flightsPerWeek);
             }
 
             addRoute() {
