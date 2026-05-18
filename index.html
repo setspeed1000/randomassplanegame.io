@@ -1049,6 +1049,7 @@
                 this.year = 1;
                 this.gameSpeed = 2;
                 this.isRunning = false;
+                this.previewDistance = null;
                 this.activityLog = [];
                 this.weeklyStats = {
                     revenue: 0,
@@ -1191,6 +1192,8 @@
                     return;
                 }
 
+                this.previewDistance = null;
+
                 const modal = document.getElementById('addRouteModal');
                 const aircraftSelect = document.getElementById('route-aircraft');
                 const originSelect = document.getElementById('route-origin');
@@ -1219,6 +1222,7 @@
 
             closeAddRouteModal() {
                 document.getElementById('addRouteModal').classList.remove('active');
+                this.previewDistance = null;
             }
 
             updateRoutePreview() {
@@ -1231,11 +1235,17 @@
 
                 if (!aircraftId) {
                     previewDiv.innerHTML = 'Select an aircraft to see details';
+                    this.previewDistance = null;
                     return;
                 }
 
                 const aircraft = this.aircraft.find(a => a.id === aircraftId);
-                const distance = Math.random() * 4000 + 500;
+
+                // Generate distance once per aircraft selection
+                if (this.previewDistance === null) {
+                    this.previewDistance = Math.random() * 4000 + 500;
+                }
+                const distance = this.previewDistance;
 
                 const demand = this.calculateDemand(ticketPrice, flightsPerWeek, aircraft.capacity);
                 const revenue = demand * ticketPrice;
